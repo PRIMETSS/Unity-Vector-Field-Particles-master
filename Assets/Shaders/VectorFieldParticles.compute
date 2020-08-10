@@ -45,7 +45,7 @@ void CSSpiral (uint3 id : SV_DispatchThreadID)
 	float len = length(p);
 
 	particleBuffer[id.x].position.x += sin(len) * deltaTime;
-	particleBuffer[id.x].position.y += cos(p.y*p.x*0.01f)* deltaTime;
+	particleBuffer[id.x].position.y += cos(len)* deltaTime;
 }
 
 [numthreads(256, 1, 1)] //1D of 256 threads

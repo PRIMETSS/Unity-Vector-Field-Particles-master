@@ -7,8 +7,8 @@ public class ParticleState
     private int[] kernels; //states can run multiple kernels at once
     private ComputeShader compShader; //needed for dispatch
     private int groupSize; //needed for dispatch
-    private ParticleState nextState;
-    
+                           //private ParticleState nextState;
+
     public ParticleState(ComputeShader computeShaderPointer, ComputeBuffer pBuffer, int gSize, params string[] kernelNames)
     {
         compShader = computeShaderPointer;
@@ -24,20 +24,10 @@ public class ParticleState
 
     public void Update()
     {
-        foreach(int k in kernels) //dispatch all kernels
+        foreach (int k in kernels) //dispatch all kernels
         {
             compShader.Dispatch(k, groupSize, 1, 1);
         }
-    }
-
-    public void SetNextState(ParticleState newNextState)
-    {
-        nextState = newNextState;
-    }
-
-    public ParticleState GetNextState()
-    {
-        return nextState;
     }
 }
 
@@ -79,16 +69,20 @@ public class VectorFieldParticles : MonoBehaviour
     private ComputeBuffer particleBuffer;
 
     //State Machine
-    private ParticleState spiral, eyes, opticalIllusion, combination;
+    private ParticleState spiral;
 
     private ParticleState currentState;
 
     //Kernels outside of states
     private int lifetimeKernel;
     private int repelKernel;
-    
+
+
+
     void Start()
     {
+
+
         //Do some math
         vectorFieldExtents = vectorFieldDimensions * 0.5f;
 
@@ -113,19 +107,13 @@ public class VectorFieldParticles : MonoBehaviour
         computeShader.SetBuffer(repelKernel, "particleBuffer", particleBuffer);
 
         //Create states
-        spiral          = new ParticleState(computeShader, particleBuffer, groupSize, "CSSpiral");
-        eyes            = new ParticleState(computeShader, particleBuffer, groupSize, "CSEyes");
-        opticalIllusion = new ParticleState(computeShader, particleBuffer, groupSize, "CSOpticalIllusion");
-        combination     = new ParticleState(computeShader, particleBuffer, groupSize, "CSOpticalIllusion", "CSSpiral");
-        spiral         .SetNextState(eyes);
-        eyes           .SetNextState(opticalIllusion);
-        opticalIllusion.SetNextState(combination);
-        combination    .SetNextState(spiral);
+        spiral = new ParticleState(computeShader, particleBuffer, groupSize, "CSSpiral");
+        //spiral         .SetNextState(eyes);
 
         //Set initial state
         currentState = spiral;
     }
-    
+
     private void InitializeParticles()
     {
         Particle[] particleArray = new Particle[particleCount];
@@ -147,19 +135,13 @@ public class VectorFieldParticles : MonoBehaviour
     private float stateDuration = 30.0f;
     void Update()
     {
-        //Change state based on time
-        if(Time.time - startTime > stateDuration) //changes the state every [state duration]
+        //Change state based on time (Deprecated as no longer cycling through different partical state kernels, left as place holder for possible timer use later)
+        if (Time.time - startTime > stateDuration) //changes the state every [state duration]
         {
-            Camera cam = GameObject.Find("Main Camera").GetComponent<Camera>();
-            var s = GameObject.Find("Partical System").GetComponent<GameObject>();
-            var cs = s.GetComponent<ComputeShader>();
-            
-
-            currentState = currentState.GetNextState();
             startTime = Time.time;
         }
 
-        //Create a repelling force where the mouse is clicked
+        //Create a repelling force where the mouse is clicked (Probably remove Repel later)
         if (Input.GetMouseButton(0))
         {
             Vector3 clickedPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -Camera.main.transform.position.z)); //uses camera z so this vector has a Z of 0
@@ -171,6 +153,7 @@ public class VectorFieldParticles : MonoBehaviour
         computeShader.SetFloat("deltaTime", Time.deltaTime); //send the CS how much time has passed since last dispatch
         computeShader.Dispatch(lifetimeKernel, groupCount, 1, 1);
         currentState.Update();
+
     }
 
     //A special unity function for procedural drawing
