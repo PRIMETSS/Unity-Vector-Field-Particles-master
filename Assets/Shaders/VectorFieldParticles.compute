@@ -1,9 +1,7 @@
 ﻿//By Jake Rodelius
 
 #pragma kernel CSLifetime
-#pragma kernel CSSpiral
-#pragma kernel CSEyes
-#pragma kernel CSOpticalIllusion
+#pragma kernel CSDefault
 #pragma kernel CSRepel
 
 struct Particle
@@ -39,35 +37,13 @@ void CSLifetime (uint3 id : SV_DispatchThreadID)
 
 //State Kernels
 [numthreads(256, 1, 1)] //1D of 256 threads
-void CSSpiral (uint3 id : SV_DispatchThreadID)
+void CSDefault (uint3 id : SV_DispatchThreadID)
 {
 	float3 p = particleBuffer[id.x].position;
 	float len = length(p);
 
 	particleBuffer[id.x].position.x += sin(len) * deltaTime;
 	particleBuffer[id.x].position.y += cos(len)* deltaTime;
-}
-
-[numthreads(256, 1, 1)] //1D of 256 threads
-void CSEyes (uint3 id : SV_DispatchThreadID)
-{
-	float3 p = particleBuffer[id.x].position;
-	float len = length(p);
-
-	//This vectorfield was found with a random vectorfield generator, then cleaned up a bit
-	particleBuffer[id.x].position.x += max(len, p.y)*sin(p.y) * deltaTime;
-	particleBuffer[id.x].position.y += cos(len*sin(p.x)) * deltaTime;
-}
-
-[numthreads(256, 1, 1)] //1D of 256 threads
-void CSOpticalIllusion (uint3 id : SV_DispatchThreadID)
-{
-	float3 p = particleBuffer[id.x].position;
-	float len = length(p);
-
-	//This vectorfield was found with a random vectorfield generator, then cleaned up a bit
-	particleBuffer[id.x].position.x += cos(sin((min(p.x, exp(p.x)) - p.y))) * deltaTime;
-	particleBuffer[id.x].position.y += sin((p.y - min(len, p.y))*max(p.y, len)) * deltaTime;
 }
 
 //Interactions Kernel

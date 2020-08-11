@@ -69,7 +69,7 @@ public class VectorFieldParticles : MonoBehaviour
     private ComputeBuffer particleBuffer;
 
     //State Machine
-    private ParticleState spiral;
+    //private ParticleState spiral;
 
     private ParticleState currentState;
 
@@ -81,8 +81,6 @@ public class VectorFieldParticles : MonoBehaviour
 
     void Start()
     {
-
-
         //Do some math
         vectorFieldExtents = vectorFieldDimensions * 0.5f;
 
@@ -106,12 +104,13 @@ public class VectorFieldParticles : MonoBehaviour
         repelKernel = computeShader.FindKernel("CSRepel");
         computeShader.SetBuffer(repelKernel, "particleBuffer", particleBuffer);
 
+        //Set initial state
         //Create states
-        spiral = new ParticleState(computeShader, particleBuffer, groupSize, "CSSpiral");
+        currentState = new ParticleState(computeShader, particleBuffer, groupSize, "CSDefault");
         //spiral         .SetNextState(eyes);
 
         //Set initial state
-        currentState = spiral;
+        //currentState = spiral;
     }
 
     private void InitializeParticles()
@@ -150,7 +149,7 @@ public class VectorFieldParticles : MonoBehaviour
         }
 
         //Send values to shader and dispatch shader kernels
-        computeShader.SetFloat("deltaTime", Time.deltaTime); //send the CS how much time has passed since last dispatch
+        computeShader.SetFloat("deltaTime", Time.deltaTime); //Send the CS how much time has passed since last dispatch
         computeShader.Dispatch(lifetimeKernel, groupCount, 1, 1);
         currentState.Update();
 
